@@ -1,3 +1,5 @@
+- Pass minion ip to the kiwi_collect_image runner as fallback instead
+  of fqdn if not present (bsc#1170737)
 - Pass image profile custom info values as Docker buildargs during image build
 - Fix activation keys request error in image import page (bsc#1170046)
 - Fix custom info values input in image profile edit form (bsc#1169773)
