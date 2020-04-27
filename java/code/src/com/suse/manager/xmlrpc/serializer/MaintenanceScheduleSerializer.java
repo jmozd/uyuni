@@ -33,8 +33,8 @@ import redstone.xmlrpc.XmlRpcSerializer;
  *   #prop("int", "id")
  *   #prop("int", "orgId")
  *   #prop("string", "name")
- *   #prop("string", "url")
  *   #prop("string", "type")
+ *   #prop_desc("string", "caledar", "only set, if present")
  * #struct_end()
  */
 public class MaintenanceScheduleSerializer extends RhnXmlRpcCustomSerializer {
@@ -59,7 +59,7 @@ public class MaintenanceScheduleSerializer extends RhnXmlRpcCustomSerializer {
         helper.add("orgId", schedule.getOrg().getId());
         helper.add("name", schedule.getName());
         helper.add("type", schedule.getScheduleType().getLabel());
-        // TODO: add list with first X maintenance windows
+        schedule.getCalendarOpt().ifPresent(cal -> helper.add("calendar", cal));
         helper.writeTo(writer);
     }
 }
