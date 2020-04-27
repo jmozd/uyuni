@@ -94,4 +94,27 @@ public class MaintenanceManager {
         return ms;
     }
 
+    public List<String> listCalendarLabelsByUser(User user) {
+        Stream<String> labels = getSession()
+                .createQuery("SELECT label FROM MaintenanceCalendar WHERE org = :org")
+                .setParameter("org", user.getOrg())
+                .stream();
+        return labels.collect(Collectors.toList());
+    }
+
+    public Optional<MaintenanceCalendar> lookupCalendarByUserAndLabel(User user, String label) {
+        return getSession().createNamedQuery("MaintenanceCalendar.lookupByUserAndName")
+                .setParameter("orgId", user.getOrg().getId())
+                .setParameter("label", label).uniqueResultOptional();
+    }
+
+    public MaintenanceCalendar createMaintenanceCalendar(User user, String label, String ical) {
+        MaintenanceCalendar mc = new MaintenanceCalendar();
+        mc.setOrg(user.getOrg());
+        mc.setLabel(label);
+        mc.setIcal(ical);
+        save(mc);
+        return mc;
+    }
+
 }
