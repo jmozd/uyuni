@@ -14,6 +14,7 @@
  */
 package com.redhat.rhn.frontend.xmlrpc.serializer;
 
+import com.suse.manager.xmlrpc.serializer.MaintenanceCalendarSerializer;
 import com.suse.manager.xmlrpc.serializer.MaintenanceScheduleSerializer;
 
 import java.util.LinkedList;
@@ -143,6 +144,7 @@ public class SerializerRegistry {
         SERIALIZER_CLASSES.add(RecurringActionSerializer.class);
         SERIALIZER_CLASSES.add(PackageStateSerializer.class);
         SERIALIZER_CLASSES.add(MaintenanceScheduleSerializer.class);
+        SERIALIZER_CLASSES.add(MaintenanceCalendarSerializer.class);
     }
 
     /**
