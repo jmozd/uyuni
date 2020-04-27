@@ -31,12 +31,19 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 @Entity
 @Table(name = "suseMaintenanceCalendar")
+@NamedQueries
+({
+    @NamedQuery(name = "MaintenanceCalendar.lookupByUserAndName",
+            query = "from com.suse.manager.model.maintenance.MaintenanceCalendar c where c.org.id = :orgId and c.label = :label")
+})
 public class MaintenanceCalendar extends BaseDomainHelper {
     private Long id;
     private Org org;
