@@ -50,22 +50,43 @@ public class MaintenanceManager {
         return instance;
     }
 
+    /**
+     * Save a MaintenanceSchedule
+     * @param schedule the schedule
+     */
     public void save(MaintenanceSchedule schedule) {
         getSession().save(schedule);
     }
 
+    /**
+     * Remove a MaintenanceSchedule
+     * @param schedule the schedule
+     */
     public void remove(MaintenanceSchedule schedule) {
         getSession().remove(schedule);
     }
 
-    public void save(MaintenanceCalendar scheduleData) {
-        getSession().save(scheduleData);
+    /**
+     * Save a MaintenanceCalendar
+     * @param calendar the calendar
+     */
+    public void save(MaintenanceCalendar calendar) {
+        getSession().save(calendar);
     }
 
-    public void remove(MaintenanceCalendar scheduleData) {
-        getSession().remove(scheduleData);
+    /**
+     * Remove a MaintenanceCalendar
+     * @param calendar the calendar
+     */
+    public void remove(MaintenanceCalendar calendar) {
+        getSession().remove(calendar);
     }
 
+    /**
+     * List Maintenance Schedule Names belong to the given User
+     * @param user the user
+     * @return a list of Schedule names
+     */
     public List<String> listScheduleNamesByUser(User user) {
         @SuppressWarnings("unchecked")
         Stream<String> names = getSession()
@@ -75,6 +96,12 @@ public class MaintenanceManager {
         return names.collect(Collectors.toList());
     }
 
+    /**
+     * Lookup a MaintenanceSchedule by user and name
+     * @param user the user
+     * @param name the schedule name
+     * @return Optional Maintenance Schedule
+     */
     @SuppressWarnings("unchecked")
     public Optional<MaintenanceSchedule> lookupMaintenanceScheduleByUserAndName(User user, String name) {
         return getSession().createNamedQuery("MaintenanceSchedule.lookupByUserAndName")
@@ -83,6 +110,14 @@ public class MaintenanceManager {
             .uniqueResultOptional();
     }
 
+    /**
+     * Create a Maintenance Scheudle
+     * @param user the creator
+     * @param name the schedule name
+     * @param type the schedule type
+     * @param calendar and optional Maintenance Calendar
+     * @return the created Maintenance Schedule
+     */
     public MaintenanceSchedule createMaintenanceSchedule(User user, String name, ScheduleType type,
             Optional<MaintenanceCalendar> calendar) {
         MaintenanceSchedule ms = new MaintenanceSchedule();
@@ -94,6 +129,11 @@ public class MaintenanceManager {
         return ms;
     }
 
+    /**
+     * List Maintenance Calendar Labels belonging to the given User
+     * @param user the user
+     * @return a list of Calender labels
+     */
     public List<String> listCalendarLabelsByUser(User user) {
         Stream<String> labels = getSession()
                 .createQuery("SELECT label FROM MaintenanceCalendar WHERE org = :org")
@@ -102,12 +142,25 @@ public class MaintenanceManager {
         return labels.collect(Collectors.toList());
     }
 
+    /**
+     * Lookup Maintenance Calendar by User and Label
+     * @param user the user
+     * @param label the label of the calendar
+     * @return Optional Maintenance Calendar
+     */
     public Optional<MaintenanceCalendar> lookupCalendarByUserAndLabel(User user, String label) {
         return getSession().createNamedQuery("MaintenanceCalendar.lookupByUserAndName")
                 .setParameter("orgId", user.getOrg().getId())
                 .setParameter("label", label).uniqueResultOptional();
     }
 
+    /**
+     * Create a MaintenanceCalendar
+     * @param user the creator
+     * @param label the label for the calendar
+     * @param ical the Calendar data in ICal format
+     * @return the created Maintenance Calendar
+     */
     public MaintenanceCalendar createMaintenanceCalendar(User user, String label, String ical) {
         MaintenanceCalendar mc = new MaintenanceCalendar();
         mc.setOrg(user.getOrg());
