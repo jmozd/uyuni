@@ -112,10 +112,10 @@ public class ActionType implements Serializable {
     /**
      * Set maintenance mode only flag
      *
-     * @param maintenancemodeonly maintenance mode only
+     * @param maintenancemodeonlyIn maintenance mode only
      */
-    public void setMaintenancemodeonly(boolean maintenancemodeonly) {
-        this.maintenancemodeonly = maintenancemodeonly;
+    public void setMaintenancemodeonly(boolean maintenancemodeonlyIn) {
+        this.maintenancemodeonly = maintenancemodeonlyIn;
     }
 
     /**
