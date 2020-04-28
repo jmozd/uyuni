@@ -42,7 +42,8 @@ import javax.persistence.Transient;
 @NamedQueries
 ({
     @NamedQuery(name = "MaintenanceCalendar.lookupByUserAndName",
-            query = "from com.suse.manager.model.maintenance.MaintenanceCalendar c where c.org.id = :orgId and c.label = :label")
+        query = "from com.suse.manager.model.maintenance.MaintenanceCalendar c " +
+                "where c.org.id = :orgId and c.label = :label")
 })
 public class MaintenanceCalendar extends BaseDomainHelper {
     private Long id;
@@ -105,42 +106,42 @@ public class MaintenanceCalendar extends BaseDomainHelper {
 
     /**
      * Set the id
-     * @param id the id
+     * @param idIn the id
      */
-    public void setId(Long id) {
-        this.id = id;
+    public void setId(Long idIn) {
+        this.id = idIn;
     }
 
     /**
      * Set the org
-     * @param org the org
+     * @param orgIn the org
      */
-    public void setOrg(Org org) {
-        this.org = org;
+    public void setOrg(Org orgIn) {
+        this.org = orgIn;
     }
 
     /**
      * Set the label
-     * @param label the label
+     * @param labelIn the label
      */
-    public void setLabel(String label) {
-        this.label = label;
+    public void setLabel(String labelIn) {
+        this.label = labelIn;
     }
 
     /**
      * Set the Url
-     * @param url the url
+     * @param urlIn the url
      */
-    public void setUrl(String url) {
-        this.url = url;
+    public void setUrl(String urlIn) {
+        this.url = urlIn;
     }
 
     /**
      * Set the ical calender data
-     * @param ical the calender data
+     * @param icalIn the calender data
      */
-    public void setIcal(String ical) {
-        this.ical = ical;
+    public void setIcal(String icalIn) {
+        this.ical = icalIn;
     }
 
     @Override

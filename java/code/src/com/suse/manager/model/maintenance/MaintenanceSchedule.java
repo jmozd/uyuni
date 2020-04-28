@@ -47,7 +47,8 @@ import javax.persistence.Transient;
 @NamedQueries
 ({
     @NamedQuery(name = "MaintenanceSchedule.lookupByUserAndName",
-            query = "from com.suse.manager.model.maintenance.MaintenanceSchedule s where s.org.id = :orgId and s.name = :name")
+        query = "from com.suse.manager.model.maintenance.MaintenanceSchedule s " +
+                "where s.org.id = :orgId and s.name = :name")
 })
 public class MaintenanceSchedule extends BaseDomainHelper {
     private Long id;
@@ -148,39 +149,39 @@ public class MaintenanceSchedule extends BaseDomainHelper {
 
     /**
      * Set the id
-     * @param id the id
+     * @param idIn the id
      */
-    public void setId(Long id) {
-        this.id = id;
+    public void setId(Long idIn) {
+        this.id = idIn;
     }
 
     /**
      * Set the org
-     * @param org the org
+     * @param orgIn the org
      */
-    public void setOrg(Org org) {
-        this.org = org;
+    public void setOrg(Org orgIn) {
+        this.org = orgIn;
     }
 
     /**
      * Set the Schedule Name
-     * @param name the schedule name
+     * @param nameIn the schedule name
      */
-    public void setName(String name) {
-        this.name = name;
+    public void setName(String nameIn) {
+        this.name = nameIn;
     }
 
     /**
      * Set the Schedule Type
-     * @param scheduleType the schedule type
+     * @param scheduleTypeIn the schedule type
      */
-    public void setScheduleType(ScheduleType scheduleType) {
-        this.scheduleType = scheduleType;
+    public void setScheduleType(ScheduleType scheduleTypeIn) {
+        this.scheduleType = scheduleTypeIn;
     }
 
     /**
      * Set the Calendar
-     * @param data the calendar
+     * @param calendarIn the calendar
      */
     public void setCalendar(MaintenanceCalendar calendarIn) {
         this.calendar = calendarIn;
