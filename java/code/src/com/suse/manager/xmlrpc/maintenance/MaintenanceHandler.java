@@ -101,6 +101,7 @@ public class MaintenanceHandler extends BaseHandler {
      *
      * @param loggedInUser the user
      * @param name schedule name
+     * @param details values to update
      * @return the changed Maintenance Schedule
      *
      * @xmlrpc.doc Update a Maintenance Schedule
@@ -218,13 +219,13 @@ public class MaintenanceHandler extends BaseHandler {
      *
      * @param loggedInUser the user
      * @param label calendar label
-     * @param ical calendar ical data
+     * @param url calendar url
      * @return the new Maintenance Calendar
      *
      * @xmlrpc.doc Create a new Maintenance Calendar
      * @xmlrpc.param #session_key()
      * @xmlrpc.param #param_desc("string", "label", "Maintenance Calendar Label")
-     * @xmlrpc.param #param_desc("string", "ical", "ICal Calendar Data")
+     * @xmlrpc.param #param_desc("string", "url", "download URL for ICal Calendar Data")
      * @xmlrpc.returntype
      * #array_begin()
      * $MaintenanceCalendarSerializer
@@ -239,6 +240,7 @@ public class MaintenanceHandler extends BaseHandler {
      *
      * @param loggedInUser the user
      * @param label calendar label
+     * @param details values which should be updated
      * @return the changed Maintenance Calendar
      *
      * @xmlrpc.doc Update a Maintenance Calendar
