@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 SUSE LLC
+ * Copyright (c) 2015--2020 SUSE LLC
  *
  * This software is licensed to you under the GNU General Public License,
  * version 2 (GPLv2). There is NO WARRANTY for this software, express or
@@ -39,7 +39,7 @@ public class ApplyStatesEventMessage implements EventDatabaseMessage {
     public static final String SYNC_CUSTOM_ALL = "util.synccustomall";
     public static final String SYNC_STATES = "util.syncstates";
     public static final String DISTUPGRADE = "distupgrade";
-    public static final String SALTBOOT = "saltboot";
+    public static final String SALTBOOT = "saltboot.boot";
     public static final String SYSTEM_INFO = "util.systeminfo";
 
     private final long serverId;

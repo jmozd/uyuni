@@ -11,6 +11,6 @@ handle_pxe_update_event:
     - tgt: pxe:branch_id:{{ branch_id }}
     - tgt_type: pillar
     - args:
-      - mods: pxe/terminal_entry
+      - mods: saltboot/terminal_entry
       - queue: True
       - pillar: {{ terminal_entry_pillar|yaml }}

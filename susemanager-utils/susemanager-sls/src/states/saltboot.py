@@ -1606,7 +1606,7 @@ def fstab_updated(name, partitioning, images):
         __salt__['cmd.run_all']("mdadm --detail --scan > {0}".format(os.path.join(prefix, 'etc/mdadm.conf')), python_shell=True, output_loglevel='trace')
 
         # notify branch server that the new config is in place
-        __salt__['cmd.run_all']("salt-call event.send suse/manager/pxe_update 'salt_device={0}' 'boot_image={1}' 'root={2}' with_grains=True".format(salt_device, boot_image, root_device['device']), python_shell=False, output_loglevel='trace')
+        __salt__['cmd.run_all']("salt-call event.send suse/manager/saltboot/pxe_update 'salt_device={0}' 'boot_image={1}' 'root={2}' with_grains=True".format(salt_device, boot_image, root_device['device']), python_shell=False, output_loglevel='trace')
 
         # this can be eventually used for kexec in verify_boot_image
         __salt__['cmd.run_all']("echo -n 'salt_device={0} root={1}' >/update_kernel_cmdline".format(salt_device, root_device['device']), python_shell=True, output_loglevel='trace')
