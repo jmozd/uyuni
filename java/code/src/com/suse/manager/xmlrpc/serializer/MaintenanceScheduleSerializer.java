@@ -34,7 +34,7 @@ import redstone.xmlrpc.XmlRpcSerializer;
  *   #prop("int", "orgId")
  *   #prop("string", "name")
  *   #prop("string", "type")
- *   #prop_desc("string", "caledar", "only set, if present")
+ *   #prop_desc($MaintenanceCalendarSerialzer, "calendar", "Maintenance Calendar if present")
  * #struct_end()
  */
 public class MaintenanceScheduleSerializer extends RhnXmlRpcCustomSerializer {

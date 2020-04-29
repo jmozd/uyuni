@@ -33,7 +33,7 @@ import redstone.xmlrpc.XmlRpcSerializer;
  *   #prop("int", "id")
  *   #prop("int", "orgId")
  *   #prop("string", "name")
- *   #prop_desc("string", "url", "only available if present")
+ *   #prop_desc("string", "url", "calendar url if present")
  *   #prop("string", "ical")
  * #struct_end()
  */
