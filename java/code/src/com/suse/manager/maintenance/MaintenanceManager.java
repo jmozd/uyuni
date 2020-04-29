@@ -16,13 +16,25 @@ package com.suse.manager.maintenance;
 
 import static com.redhat.rhn.common.hibernate.HibernateFactory.getSession;
 
+import com.redhat.rhn.common.util.download.DownloadException;
 import com.redhat.rhn.domain.user.User;
+import com.redhat.rhn.manager.EntityNotExistsException;
 
 import com.suse.manager.model.maintenance.MaintenanceSchedule;
 import com.suse.manager.model.maintenance.MaintenanceSchedule.ScheduleType;
+import com.suse.manager.utils.HttpHelper;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+
 import com.suse.manager.model.maintenance.MaintenanceCalendar;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -129,6 +141,31 @@ public class MaintenanceManager {
         return ms;
     }
 
+    public MaintenanceSchedule updateMaintenanceSchedule(User user, String name, Map<String, String> details) {
+        MaintenanceSchedule schedule = lookupMaintenanceScheduleByUserAndName(user, name)
+                .orElseThrow(() -> new EntityNotExistsException(name));
+        if (details.containsKey("name")) {
+            // TODO: should the identifier really be changeable?
+            schedule.setName(details.get("name"));
+        }
+        if (details.containsKey("type")) {
+            schedule.setScheduleType(ScheduleType.lookupByLabel(details.get("type")));
+        }
+        if (details.containsKey("calendar")) {
+            MaintenanceCalendar calendar = lookupCalendarByUserAndLabel(user, details.get("calendar"))
+                .orElseThrow(() -> new EntityNotExistsException(details.get("calendar")));
+
+            schedule.setCalendar(calendar);
+        }
+        save(schedule);
+        manageAffectedScheduledActions(user, schedule, Collections.EMPTY_LIST);
+        return schedule;
+    }
+
+    private void manageAffectedScheduledActions(User user, MaintenanceSchedule schedule, List<String> scheduleStrategy) {
+        // TODO: implement it
+    }
+
     /**
      * List Maintenance Calendar Labels belonging to the given User
      * @param user the user
@@ -155,7 +192,7 @@ public class MaintenanceManager {
     }
 
     /**
-     * Create a MaintenanceCalendar
+     * Create a MaintenanceCalendar with ICal Data
      * @param user the creator
      * @param label the label for the calendar
      * @param ical the Calendar data in ICal format
@@ -168,6 +205,58 @@ public class MaintenanceManager {
         mc.setIcal(ical);
         save(mc);
         return mc;
+    }
+
+    /**
+     * Create a MaintenanceCalendar using an URL
+     * @param user the creator
+     * @param label the label for the calendar
+     * @param url URL pointing to the Calendar Data
+     * @return the created Maintenance Calendar
+     */
+    public MaintenanceCalendar createMaintenanceCalendarWithUrl(User user, String label, String url) {
+        try {
+            HttpHelper http = new HttpHelper();
+            HttpResponse response = http.sendGetRequest(url);
+            StatusLine status = response.getStatusLine();
+            if (status.getStatusCode() != HttpStatus.SC_OK) {
+                throw new DownloadException(url, status.getReasonPhrase(), status.getStatusCode());
+            }
+            MaintenanceCalendar mc = new MaintenanceCalendar();
+            mc.setOrg(user.getOrg());
+            mc.setLabel(label);
+            mc.setUrl(url);
+            mc.setIcal(http.getBodyAsString(response));
+            save(mc);
+            return mc;
+        }
+        catch (IOException e) {
+            throw new DownloadException(url, e.getMessage(), 500);
+        }
+    }
+
+    public MaintenanceCalendar updateCalendar(User user, String label, Map<String, String> details) {
+        MaintenanceCalendar calendar = lookupCalendarByUserAndLabel(user, label)
+                .orElseThrow(() -> new EntityNotExistsException(label));
+        if (details.containsKey("label")) {
+            // TODO: should the identifier really be changeable?
+            calendar.setLabel(details.get("label"));
+        }
+        if (details.containsKey("ical")) {
+            calendar.setIcal(details.get("ical"));
+        }
+        save(calendar);
+        listSchedulesByUserAndCalendar(user, calendar).forEach(schedule ->
+            manageAffectedScheduledActions(user, schedule, Collections.EMPTY_LIST));
+        return calendar;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<MaintenanceSchedule> listSchedulesByUserAndCalendar(User user, MaintenanceCalendar calendar) {
+        return getSession()
+                .createQuery("SELECT * from MaintenanceSchedule WHERE org = :org and ical = :calendar")
+                .setParameter("org", user.getOrg())
+                .setParameter("calendar", calendar).getResultList();
     }
 
 }
