@@ -19,11 +19,15 @@ import com.redhat.rhn.frontend.xmlrpc.BaseHandler;
 import com.redhat.rhn.frontend.xmlrpc.EntityNotExistsFaultException;
 
 import com.suse.manager.maintenance.MaintenanceManager;
+import com.suse.manager.model.maintenance.MaintenanceCalendar;
 import com.suse.manager.model.maintenance.MaintenanceSchedule;
 import com.suse.manager.model.maintenance.MaintenanceSchedule.ScheduleType;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Maintenance Schedule XMLRPC Handler
@@ -65,9 +69,9 @@ public class MaintenanceHandler extends BaseHandler {
      * $MaintenanceScheduleSerializer
      * #array_end()
      */
-    public MaintenanceSchedule lookupSchedule(User loggedInUser, String name) {
-        return mm.lookupMaintenanceScheduleByUserAndName(loggedInUser, name)
-                .orElseThrow(() -> new EntityNotExistsFaultException(name));
+    public MaintenanceSchedule getScheduleDetails(User loggedInUser, String name) {
+            return mm.lookupMaintenanceScheduleByUserAndName(loggedInUser, name)
+                    .orElseThrow(() -> new EntityNotExistsFaultException(name));
     }
 
     /**
@@ -102,18 +106,39 @@ public class MaintenanceHandler extends BaseHandler {
      * @xmlrpc.doc Update a Maintenance Schedule
      * @xmlrpc.param #session_key()
      * @xmlrpc.param #param_desc("string", "name", "Maintenance Schedule Name")
+     * @xmlrpc.param
+     *     #struct_begin("Maintenance Schedule Details")
+     *         #prop_desc("string", "name", "new Schedule Name")
+     *         #prop_desc("string", "type", "new Schedule Type")
+     *           #options()
+     *               #item("single")
+     *               #item("multi"")
+     *           #options_end()
+     *         #prop_desc("string", "calendar", "new calendar label")
+     *     #struct_end()
      * @xmlrpc.returntype
      * #array_begin()
      * $MaintenanceScheduleSerializer
      * #array_end()
      */
-    public MaintenanceSchedule updateSchedule(User loggedInUser, String name) {
-        // TODO: needs implementation
-        return null;
+    public MaintenanceSchedule updateSchedule(User loggedInUser, String name, Map<String, String> details) {
+        // confirm that the user only provided valid keys in the map
+        Set<String> validKeys = new HashSet<String>();
+        validKeys.add("name");
+        validKeys.add("type");
+        validKeys.add("calendar");
+        validateMap(validKeys, details);
+
+        try {
+            return mm.updateMaintenanceSchedule(loggedInUser, name, details);
+        }
+        catch (EntityNotExistsFaultException e) {
+            throw new EntityNotExistsFaultException(e);
+        }
     }
 
     /**
-     * Remove a Maintenance Schedule
+     * Delete a Maintenance Schedule
      *
      * @param loggedInUser the user
      * @param name schedule name
@@ -125,9 +150,141 @@ public class MaintenanceHandler extends BaseHandler {
      * @xmlrpc.param #param_desc("string", "name", "Maintenance Schedule Name")
      * @xmlrpc.returntype #return_int_success()
      */
-    public int removeSchedule(User loggedInUser, String name) {
+    public int deleteSchedule(User loggedInUser, String name) {
         Optional<MaintenanceSchedule> schedule = mm.lookupMaintenanceScheduleByUserAndName(loggedInUser, name);
         mm.remove(schedule.orElseThrow(() -> new EntityNotExistsFaultException(name)));
+        return 1;
+    }
+
+
+    /**
+     * List Calendar Labels visible to user
+     *
+     * @param loggedInUser the user
+     * @return list of calendar labels
+     *
+     * @xmlrpc.doc List Schedule Names visible to user
+     * @xmlrpc.param #session_key()
+     * @xmlrpc.returntype #array_single("string", "maintenance calendar labels")
+     */
+    public List<String> listCalendarLabels(User loggedInUser) {
+        return mm.listCalendarLabelsByUser(loggedInUser);
+    }
+
+    /**
+     * Lookup a specific Maintenance Calendar
+     *
+     * @param loggedInUser the user
+     * @param label calendar label
+     * @throws EntityNotExistsFaultException when Maintenance Calendar does not exist
+     * @return the Maintenance Calendar
+     *
+     * @xmlrpc.doc Lookup a specific Maintenance Schedule
+     * @xmlrpc.param #session_key()
+     * @xmlrpc.param #param_desc("string", "label", "Maintenance Calendar Label")
+     * @xmlrpc.returntype
+     * #array_begin()
+     * $MaintenanceCalendarSerializer
+     * #array_end()
+     */
+    public MaintenanceCalendar getCalendarDetails(User loggedInUser, String label) {
+            return mm.lookupCalendarByUserAndLabel(loggedInUser, label)
+                    .orElseThrow(() -> new EntityNotExistsFaultException(label));
+    }
+
+    /**
+     * Create a new Maintenance Calendar
+     *
+     * @param loggedInUser the user
+     * @param label calendar label
+     * @param ical calendar ical data
+     * @return the new Maintenance Calendar
+     *
+     * @xmlrpc.doc Create a new Maintenance Calendar
+     * @xmlrpc.param #session_key()
+     * @xmlrpc.param #param_desc("string", "label", "Maintenance Calendar Label")
+     * @xmlrpc.param #param_desc("string", "ical", "ICal Calendar Data")
+     * @xmlrpc.returntype
+     * #array_begin()
+     * $MaintenanceCalendarSerializer
+     * #array_end()
+     */
+    public MaintenanceCalendar createCalendar(User loggedInUser, String label, String ical) {
+        return mm.createMaintenanceCalendar(loggedInUser, label, ical);
+    }
+
+    /**
+     * Create a new Maintenance Calendar
+     *
+     * @param loggedInUser the user
+     * @param label calendar label
+     * @param ical calendar ical data
+     * @return the new Maintenance Calendar
+     *
+     * @xmlrpc.doc Create a new Maintenance Calendar
+     * @xmlrpc.param #session_key()
+     * @xmlrpc.param #param_desc("string", "label", "Maintenance Calendar Label")
+     * @xmlrpc.param #param_desc("string", "ical", "ICal Calendar Data")
+     * @xmlrpc.returntype
+     * #array_begin()
+     * $MaintenanceCalendarSerializer
+     * #array_end()
+     */
+    public MaintenanceCalendar createCalendarWithUrl(User loggedInUser, String label, String url) {
+        return mm.createMaintenanceCalendarWithUrl(loggedInUser, label, url);
+    }
+
+    /**
+     * Update a Maintenance Calendar
+     *
+     * @param loggedInUser the user
+     * @param label calendar label
+     * @return the changed Maintenance Calendar
+     *
+     * @xmlrpc.doc Update a Maintenance Calendar
+     * @xmlrpc.param #session_key()
+     * @xmlrpc.param #param_desc("string", "label", "Maintenance Calendar Label")
+     * @xmlrpc.param
+     *     #struct_begin("Maintenance Calendar Details")
+     *         #prop_desc("string", "label", "new Calendar Label")
+     *         #prop_desc("string", "ical", "new ical Calendar data")
+     *     #struct_end()
+     * @xmlrpc.returntype
+     * #array_begin()
+     * $MaintenanceCalendarSerializer
+     * #array_end()
+     */
+    public MaintenanceCalendar updateCalendar(User loggedInUser, String label, Map<String, String> details) {
+        // confirm that the user only provided valid keys in the map
+        Set<String> validKeys = new HashSet<String>();
+        validKeys.add("label");
+        validKeys.add("ical");
+        validateMap(validKeys, details);
+
+        try {
+            return mm.updateCalendar(loggedInUser, label, details);
+        }
+        catch (EntityNotExistsFaultException e) {
+            throw new EntityNotExistsFaultException(e);
+        }
+    }
+
+    /**
+     * Delete a Maintenance Calendar
+     *
+     * @param loggedInUser the user
+     * @param label calendar label
+     * @throws EntityNotExistsFaultException when Maintenance Calendar does not exist
+     * @return number of removed objects
+     *
+     * @xmlrpc.doc Remove a Maintenance Calendar
+     * @xmlrpc.param #session_key()
+     * @xmlrpc.param #param_desc("string", "label", "Maintenance Calendar Label)
+     * @xmlrpc.returntype #return_int_success()
+     */
+    public int deleteCalendar(User loggedInUser, String label) {
+        Optional<MaintenanceCalendar> calendar = mm.lookupCalendarByUserAndLabel(loggedInUser, label);
+        mm.remove(calendar.orElseThrow(() -> new EntityNotExistsFaultException(label)));
         return 1;
     }
 }
