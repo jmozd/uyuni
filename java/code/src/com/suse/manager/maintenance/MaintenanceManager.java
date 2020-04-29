@@ -281,7 +281,8 @@ public class MaintenanceManager {
         }
     }
 
-    protected void manageAffectedScheduledActions(User user, MaintenanceSchedule schedule, List<String> scheduleStrategy) {
+    protected void manageAffectedScheduledActions(User user, MaintenanceSchedule schedule,
+            List<String> scheduleStrategy) {
         // TODO: implement it
     }
 }
