@@ -26,11 +26,11 @@ import com.suse.manager.utils.HttpHelper;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.ParseException;
 import org.apache.http.StatusLine;
 
 import com.suse.manager.model.maintenance.MaintenanceCalendar;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -141,6 +141,13 @@ public class MaintenanceManager {
         return ms;
     }
 
+    /**
+     * Update a MaintenanceSchedule
+     * @param user the user
+     * @param name the schedule name
+     * @param details values which should be changed (name, type, calendar)
+     * @return the updated MaintenanceSchedule
+     */
     public MaintenanceSchedule updateMaintenanceSchedule(User user, String name, Map<String, String> details) {
         MaintenanceSchedule schedule = lookupMaintenanceScheduleByUserAndName(user, name)
                 .orElseThrow(() -> new EntityNotExistsException(name));
@@ -162,14 +169,10 @@ public class MaintenanceManager {
         return schedule;
     }
 
-    private void manageAffectedScheduledActions(User user, MaintenanceSchedule schedule, List<String> scheduleStrategy) {
-        // TODO: implement it
-    }
-
     /**
      * List Maintenance Calendar Labels belonging to the given User
      * @param user the user
-     * @return a list of Calender labels
+     * @return a list of Calendar labels
      */
     public List<String> listCalendarLabelsByUser(User user) {
         Stream<String> labels = getSession()
@@ -214,27 +217,24 @@ public class MaintenanceManager {
      * @param url URL pointing to the Calendar Data
      * @return the created Maintenance Calendar
      */
-    public MaintenanceCalendar createMaintenanceCalendarWithUrl(User user, String label, String url) {
-        try {
-            HttpHelper http = new HttpHelper();
-            HttpResponse response = http.sendGetRequest(url);
-            StatusLine status = response.getStatusLine();
-            if (status.getStatusCode() != HttpStatus.SC_OK) {
-                throw new DownloadException(url, status.getReasonPhrase(), status.getStatusCode());
-            }
-            MaintenanceCalendar mc = new MaintenanceCalendar();
-            mc.setOrg(user.getOrg());
-            mc.setLabel(label);
-            mc.setUrl(url);
-            mc.setIcal(http.getBodyAsString(response));
-            save(mc);
-            return mc;
-        }
-        catch (IOException e) {
-            throw new DownloadException(url, e.getMessage(), 500);
-        }
+    public MaintenanceCalendar createMaintenanceCalendarWithUrl(User user, String label, String url)
+            throws DownloadException {
+        MaintenanceCalendar mc = new MaintenanceCalendar();
+        mc.setOrg(user.getOrg());
+        mc.setLabel(label);
+        mc.setUrl(url);
+        mc.setIcal(fetchCalendarData(url));
+        save(mc);
+        return mc;
     }
 
+    /**
+     * Update a MaintenanceCalendar
+     * @param user the user
+     * @param label the calendar label
+     * @param details the details which should be updated (label, ical, url)
+     * @return the updated MaintenanceCalendar
+     */
     public MaintenanceCalendar updateCalendar(User user, String label, Map<String, String> details) {
         MaintenanceCalendar calendar = lookupCalendarByUserAndLabel(user, label)
                 .orElseThrow(() -> new EntityNotExistsException(label));
@@ -245,6 +245,10 @@ public class MaintenanceManager {
         if (details.containsKey("ical")) {
             calendar.setIcal(details.get("ical"));
         }
+        else if (details.containsKey("url")) {
+            calendar.setUrl(details.get("url"));
+            calendar.setIcal(fetchCalendarData(details.get("url")));
+        }
         save(calendar);
         listSchedulesByUserAndCalendar(user, calendar).forEach(schedule ->
             manageAffectedScheduledActions(user, schedule, Collections.EMPTY_LIST));
@@ -254,9 +258,30 @@ public class MaintenanceManager {
     @SuppressWarnings("unchecked")
     private List<MaintenanceSchedule> listSchedulesByUserAndCalendar(User user, MaintenanceCalendar calendar) {
         return getSession()
-                .createQuery("SELECT * from MaintenanceSchedule WHERE org = :org and ical = :calendar")
+                .createQuery("from MaintenanceSchedule WHERE org = :org and calendar = :calendar")
                 .setParameter("org", user.getOrg())
                 .setParameter("calendar", calendar).getResultList();
     }
 
+    protected String fetchCalendarData(String url) {
+        try {
+            HttpHelper http = new HttpHelper();
+            HttpResponse response = http.sendGetRequest(url);
+            StatusLine status = response.getStatusLine();
+            if (status.getStatusCode() != HttpStatus.SC_OK) {
+                throw new DownloadException(url, status.getReasonPhrase(), status.getStatusCode());
+            }
+            return http.getBodyAsString(response, "UTF-8");
+        }
+        catch (IOException e) {
+            throw new DownloadException(url, e.getMessage(), 500);
+        }
+        catch (ParseException p) {
+            throw new DownloadException(url, p.getMessage(), 500);
+        }
+    }
+
+    protected void manageAffectedScheduledActions(User user, MaintenanceSchedule schedule, List<String> scheduleStrategy) {
+        // TODO: implement it
+    }
 }
