@@ -88,11 +88,12 @@ public class HttpHelper {
     /**
      * Return body as String
      * @param response the response
+     * @param defaultCharset character set to be applied if none found in the entity (NULL default to "ISO-8859-1")
      * @return body as String
      * @throws IOException
      */
-    public String getBodyAsString(HttpResponse response) throws IOException {
-        return EntityUtils.toString(response.getEntity());
+    public String getBodyAsString(HttpResponse response, String defaultCharset) throws IOException {
+        return EntityUtils.toString(response.getEntity(), defaultCharset);
     }
 
     /**
@@ -109,8 +110,7 @@ public class HttpHelper {
             throws IOException {
         HttpHead headRequest = new HttpHead(url);
         try {
-            return httpClient.executeRequest(
-                    headRequest, username, password, ignoreNoProxy);
+            return httpClient.executeRequest(headRequest, username, password, ignoreNoProxy);
         }
         finally {
             headRequest.releaseConnection();
@@ -132,8 +132,7 @@ public class HttpHelper {
         log.debug("GET: " + url);
         HttpGet getRequest = new HttpGet(url);
         try {
-            return httpClient.executeRequest(
-                    getRequest, username, password, ignoreNoProxy);
+            return httpClient.executeRequest(getRequest, username, password, ignoreNoProxy);
         }
         finally {
             getRequest.releaseConnection();
