@@ -50,6 +50,7 @@ public class MaintenanceHandler extends BaseHandler {
      * @xmlrpc.returntype #array_single("string", "maintenance schedule names")
      */
     public List<String> listScheduleNames(User loggedInUser) {
+        ensureOrgAdmin(loggedInUser);
         return mm.listScheduleNamesByUser(loggedInUser);
     }
 
@@ -70,8 +71,9 @@ public class MaintenanceHandler extends BaseHandler {
      * #array_end()
      */
     public MaintenanceSchedule getScheduleDetails(User loggedInUser, String name) {
-            return mm.lookupMaintenanceScheduleByUserAndName(loggedInUser, name)
-                    .orElseThrow(() -> new EntityNotExistsFaultException(name));
+        ensureOrgAdmin(loggedInUser);
+        return mm.lookupMaintenanceScheduleByUserAndName(loggedInUser, name)
+                .orElseThrow(() -> new EntityNotExistsFaultException(name));
     }
 
     /**
@@ -92,6 +94,7 @@ public class MaintenanceHandler extends BaseHandler {
      * #array_end()
      */
     public MaintenanceSchedule createSchedule(User loggedInUser, String name, String type) {
+        ensureOrgAdmin(loggedInUser);
         return mm.createMaintenanceSchedule(loggedInUser, name, ScheduleType.lookupByLabel(type),
                 Optional.empty());
     }
@@ -123,6 +126,8 @@ public class MaintenanceHandler extends BaseHandler {
      * #array_end()
      */
     public MaintenanceSchedule updateSchedule(User loggedInUser, String name, Map<String, String> details) {
+        ensureOrgAdmin(loggedInUser);
+
         // confirm that the user only provided valid keys in the map
         Set<String> validKeys = new HashSet<String>();
         validKeys.add("name");
@@ -152,6 +157,7 @@ public class MaintenanceHandler extends BaseHandler {
      * @xmlrpc.returntype #return_int_success()
      */
     public int deleteSchedule(User loggedInUser, String name) {
+        ensureOrgAdmin(loggedInUser);
         Optional<MaintenanceSchedule> schedule = mm.lookupMaintenanceScheduleByUserAndName(loggedInUser, name);
         mm.remove(schedule.orElseThrow(() -> new EntityNotExistsFaultException(name)));
         return 1;
@@ -169,6 +175,7 @@ public class MaintenanceHandler extends BaseHandler {
      * @xmlrpc.returntype #array_single("string", "maintenance calendar labels")
      */
     public List<String> listCalendarLabels(User loggedInUser) {
+        ensureOrgAdmin(loggedInUser);
         return mm.listCalendarLabelsByUser(loggedInUser);
     }
 
@@ -189,8 +196,9 @@ public class MaintenanceHandler extends BaseHandler {
      * #array_end()
      */
     public MaintenanceCalendar getCalendarDetails(User loggedInUser, String label) {
-            return mm.lookupCalendarByUserAndLabel(loggedInUser, label)
-                    .orElseThrow(() -> new EntityNotExistsFaultException(label));
+        ensureOrgAdmin(loggedInUser);
+        return mm.lookupCalendarByUserAndLabel(loggedInUser, label)
+                .orElseThrow(() -> new EntityNotExistsFaultException(label));
     }
 
     /**
@@ -211,6 +219,7 @@ public class MaintenanceHandler extends BaseHandler {
      * #array_end()
      */
     public MaintenanceCalendar createCalendar(User loggedInUser, String label, String ical) {
+        ensureOrgAdmin(loggedInUser);
         return mm.createMaintenanceCalendar(loggedInUser, label, ical);
     }
 
@@ -232,6 +241,7 @@ public class MaintenanceHandler extends BaseHandler {
      * #array_end()
      */
     public MaintenanceCalendar createCalendarWithUrl(User loggedInUser, String label, String url) {
+        ensureOrgAdmin(loggedInUser);
         return mm.createMaintenanceCalendarWithUrl(loggedInUser, label, url);
     }
 
@@ -257,6 +267,8 @@ public class MaintenanceHandler extends BaseHandler {
      * #array_end()
      */
     public MaintenanceCalendar updateCalendar(User loggedInUser, String label, Map<String, String> details) {
+        ensureOrgAdmin(loggedInUser);
+
         // confirm that the user only provided valid keys in the map
         Set<String> validKeys = new HashSet<String>();
         validKeys.add("label");
@@ -265,6 +277,27 @@ public class MaintenanceHandler extends BaseHandler {
 
         try {
             return mm.updateCalendar(loggedInUser, label, details);
+        }
+        catch (EntityNotExistsFaultException e) {
+            throw new EntityNotExistsFaultException(e);
+        }
+    }
+
+    /**
+     * Refresh the calendar data using the configured URL
+     * @param loggedInUser user
+     * @param label the calendar label
+     *
+     * @xmlrpc.doc Refresh Maintenance Calendar Data using the configured URL
+     * @xmlrpc.param #session_key()
+     * @xmlrpc.param #param_desc("string", "label", "Maintenance Calendar Label")
+     * @xmlrpc.returntype #return_int_success()
+     */
+    public int refreshCalendar(User loggedInUser, String label) {
+        ensureOrgAdmin(loggedInUser);
+        try {
+            mm.refreshCalendar(loggedInUser, label);
+            return 1;
         }
         catch (EntityNotExistsFaultException e) {
             throw new EntityNotExistsFaultException(e);
@@ -285,6 +318,7 @@ public class MaintenanceHandler extends BaseHandler {
      * @xmlrpc.returntype #return_int_success()
      */
     public int deleteCalendar(User loggedInUser, String label) {
+        ensureOrgAdmin(loggedInUser);
         Optional<MaintenanceCalendar> calendar = mm.lookupCalendarByUserAndLabel(loggedInUser, label);
         mm.remove(calendar.orElseThrow(() -> new EntityNotExistsFaultException(label)));
         return 1;
