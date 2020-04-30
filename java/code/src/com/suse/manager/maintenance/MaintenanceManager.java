@@ -255,6 +255,22 @@ public class MaintenanceManager {
         return calendar;
     }
 
+    /**
+     * Refresh the calendar data using the configured URL
+     * @param user the user
+     * @param label the calendar label
+     * @throws EntityNotExistsException when calendar or url does not exist
+     */
+    public void refreshCalendar(User user, String label) {
+        MaintenanceCalendar calendar = lookupCalendarByUserAndLabel(user, label)
+                .orElseThrow(() -> new EntityNotExistsException(label));
+        calendar.setIcal(fetchCalendarData(
+                calendar.getUrlOpt().orElseThrow(() -> new EntityNotExistsException("url"))));
+        save(calendar);
+        listSchedulesByUserAndCalendar(user, calendar).forEach(schedule ->
+            manageAffectedScheduledActions(user, schedule, Collections.EMPTY_LIST));
+    }
+
     @SuppressWarnings("unchecked")
     private List<MaintenanceSchedule> listSchedulesByUserAndCalendar(User user, MaintenanceCalendar calendar) {
         return getSession()
